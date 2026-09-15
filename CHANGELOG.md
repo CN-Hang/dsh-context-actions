@@ -6,6 +6,8 @@
 
 ### Added
 
+- 零依赖单元测试（Node 内置 `node:test`）：宿主命令链、参数/配置/路径校验、机械折叠与 llm 回退；浏览器半侧 bundle 契约与设置卡片字段显隐。
+- GitHub Actions：CI（Node 18/20/22 矩阵：语法检查 + 单元测试 + 打包 dry-run）与 Release（`v*` 标签生成 GitHub Release；配置 `NPM_TOKEN` 后同步发布 npm）。
 - 在「上下文已用」面板底部新增「压缩」「交接」两个按钮，并带状态反馈。
 - `/handover`、`/handover --where`、`/handover --write <绝对路径>` 命令；文档默认写入 `<系统临时目录>/dsh-handover`。
 - 两种生成方式：`脚本节选`（默认，零模型调用）与 `模型总结`（整段派生历史一次喂给模型）。

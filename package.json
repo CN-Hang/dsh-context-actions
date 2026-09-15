@@ -53,5 +53,10 @@
   },
   "bugs": {
     "url": "https://github.com/CN-Hang/dsh-context-actions/issues"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check lib/index.js && node --check lib/client.js",
+    "pack:dry": "npm pack --dry-run"
   }
 }

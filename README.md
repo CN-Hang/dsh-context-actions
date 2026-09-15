@@ -1,5 +1,8 @@
 # dsh-context-actions
 
+[![CI](https://github.com/CN-Hang/dsh-context-actions/actions/workflows/ci.yml/badge.svg)](https://github.com/CN-Hang/dsh-context-actions/actions/workflows/ci.yml)
+[![Release](https://github.com/CN-Hang/dsh-context-actions/actions/workflows/release.yml/badge.svg)](https://github.com/CN-Hang/dsh-context-actions/actions/workflows/release.yml)
+
 > **非官方开源插件，与 DeepSeek 官方无关。** MIT License。
 
 给 DeepSeek Harness（`dsh`）Web GUI 的「上下文已用」面板加两个按钮。
@@ -144,6 +147,8 @@ Web 部署故意把压缩后端交给 **agent 预设**：`minimal` 预设的注�
   README.md           # 使用与开发文档
   CHANGELOG.md        # 版本记录
   LICENSE             # MIT
+  test\               # node:test 单元测试（宿主 + 浏览器半侧）
+  .github\workflows\  # CI / Release
 ```
 
 改动后同步到 profile（`dsh plugin add` 用的是硬链接副本，改同样的文件路径即可就地生效；新增文件需要重跑一次）：
@@ -169,13 +174,28 @@ dsh plugin --profile web add file:<仓库绝对路径>
   开 `handover.mode: llm` 后正文改为模型总结（模型看不到你没想到要喂给它的东西，仍受截断与预算约束），附录依旧是脚本节选，便于核对。
 - 「压缩」不做任何绕过预设的 hack，避免改掉部署的自动压缩行为。
 
+## 开发与测试
+
+```powershell
+npm test          # Node 内置 node:test，零依赖
+npm run check     # lib/index.js + lib/client.js 语法检查
+npm run pack:dry  # 预览 npm 包内容
+```
+
+测试分两层：
+
+- `test/index.test.js`：用假 ctx/session 驱动真实的 `/handover` 命令链（参数解析、配置回退、路径校验、机械折叠、llm 回退）。
+- `test/client.test.js`：用假 `window`/React 桩加载浏览器 bundle，校验 bundle 契约与「脚本节选 / 模型总结」字段显隐。
+
+CI：push / PR 触发 Node 18、20、22 矩阵；推送 `v*` 标签触发 Release workflow —— 生成 GitHub Release，配置 `NPM_TOKEN` secret 后会同时发布到 npm（带 provenance）。
+
 ## 开源许可
 
 MIT License，全文见 [LICENSE](LICENSE)。
 
 ## 参与贡献
 
-- 提交 Issue / PR 前先跑：`node --check lib/index.js` 与 `node --check lib/client.js`。
+- 提交 Issue / PR 前先跑：`npm test`（14 个零依赖单元测试）与 `npm run check`。
 - 改完源码后用 `dsh plugin --profile web add file:<仓库绝对路径>` 重新同步到 profile，再重启 dsh（宿主半侧）并刷新页面（浏览器半侧）验证。
 - 打包预览：`npm pack --dry-run`；正式打包：`npm pack --pack-destination dist`，产物为 `dsh-context-actions-0.1.0.tgz`。
 - 仓库地址：<https://github.com/CN-Hang/dsh-context-actions>；如果你 fork 后发布，请把 `package.json` 里的 `author`、`repository`、`homepage` 换成你自己的信息。
