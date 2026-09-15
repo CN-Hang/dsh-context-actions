@@ -178,4 +178,4 @@ MIT License，全文见 [LICENSE](LICENSE)。
 - 提交 Issue / PR 前先跑：`node --check lib/index.js` 与 `node --check lib/client.js`。
 - 改完源码后用 `dsh plugin --profile web add file:<仓库绝对路径>` 重新同步到 profile，再重启 dsh（宿主半侧）并刷新页面（浏览器半侧）验证。
 - 打包预览：`npm pack --dry-run`；正式打包：`npm pack --pack-destination dist`，产物为 `dsh-context-actions-0.1.0.tgz`。
-- 如果你要发布到 npm / GitHub，请先把 `package.json` 里的 `author`、`repository`、`homepage` 换成你自己的信息。
+- 仓库地址：<https://github.com/CN-Hang/dsh-context-actions>；如果你 fork 后发布，请把 `package.json` 里的 `author`、`repository`、`homepage` 换成你自己的信息。

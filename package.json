@@ -45,5 +45,13 @@
     "client": {
       "platform": "web"
     }
+  },
+  "homepage": "https://github.com/CN-Hang/dsh-context-actions#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CN-Hang/dsh-context-actions.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CN-Hang/dsh-context-actions/issues"
   }
 }
