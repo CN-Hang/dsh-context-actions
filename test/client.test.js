@@ -6,6 +6,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -173,4 +174,72 @@ test('snapshot 不可用时卡片返回 null', () => {
   const Card = renderCard(undefined);
   react.reset([true]);
   assert.equal(Card(baseProps(undefined)), null);
+});
+
+/** 造一个极简 DOM 节点，供 findContextPanel 测试使用。 */
+function makeNode(attrs, children) {
+  const node = {
+    attrs: attrs || {},
+    children: children || [],
+    parentElement: null,
+    getAttribute(name) {
+      return Object.prototype.hasOwnProperty.call(this.attrs, name) ? this.attrs[name] : null;
+    },
+    querySelector() {
+      return null;
+    },
+  };
+  for (const child of node.children) if (child !== null && child !== undefined) child.parentElement = node;
+  return node;
+}
+
+function makeTrigger(label, hasRing) {
+  const trigger = makeNode({ 'aria-haspopup': 'dialog', 'aria-expanded': 'true', 'aria-label': label }, []);
+  trigger.querySelector = (selector) => (hasRing && selector === 'svg[viewBox="0 0 14 14"]' ? { ring: true } : null);
+  return trigger;
+}
+
+test('findContextPanel：只认上下文圆环，不认会话统计浮窗', () => {
+  const find = exports.__test.findContextPanel;
+  assert.equal(typeof find, 'function');
+
+  // 上下文圆环（中文）：面板是 trigger 的兄弟节点（inline，不是 portal）
+  const contextPanel = makeNode({ role: 'dialog' }, []);
+  const contextTrigger = makeTrigger('上下文已用 45%', true);
+  makeNode({}, [contextTrigger, contextPanel]);
+  const contextDoc = { querySelectorAll: (selector) => (selector.startsWith('button') ? [contextTrigger] : []) };
+  assert.equal(find(contextDoc), contextPanel);
+
+  // 上下文圆环（英文，靠 label 里的 context 命中）
+  const enPanel = makeNode({ role: 'dialog' }, []);
+  const enTrigger = makeTrigger('45% of context used', false);
+  makeNode({}, [enTrigger, enPanel]);
+  const enDoc = { querySelectorAll: (selector) => (selector.startsWith('button') ? [enTrigger] : []) };
+  assert.equal(find(enDoc), enPanel);
+
+  // 其它语言：label 里没有 context，但 trigger 里有 14x14 圆环 SVG
+  const otherPanel = makeNode({ role: 'dialog' }, []);
+  const otherTrigger = makeTrigger('コンテキスト 45%', true);
+  makeNode({}, [otherTrigger, otherPanel]);
+  const otherDoc = { querySelectorAll: (selector) => (selector.startsWith('button') ? [otherTrigger] : []) };
+  assert.equal(find(otherDoc), otherPanel);
+
+  // 会话统计 / 缓存命中 pill：label 带 % 但不是上下文，面板 portal 到 body，不在祖先链里
+  const statTrigger = makeTrigger('7.3M tok · 缓存命中 97%', false);
+  makeNode({}, [statTrigger]);
+  const statDoc = { querySelectorAll: (selector) => (selector.startsWith('button') ? [statTrigger] : []) };
+  assert.equal(find(statDoc), null);
+
+  // TPS pill：label 里没有 %
+  const tpsTrigger = makeTrigger('13 轮 65 步 · 170 tok/s', false);
+  makeNode({}, [tpsTrigger]);
+  const tpsDoc = { querySelectorAll: (selector) => (selector.startsWith('button') ? [tpsTrigger] : []) };
+  assert.equal(find(tpsDoc), null);
+});
+
+test('client 源码：保留了圆环专用选择逻辑，且不再用任意 dt/dd 兜底', () => {
+  const source = fs.readFileSync(clientFile, 'utf8');
+  assert.ok(source.includes('findContextPanel(document)'));
+  assert.ok(source.includes('svg[viewBox="0 0 14 14"]'));
+  assert.ok(!source.includes("dialog.querySelector('dl')"));
 });
