@@ -1,0 +1,7 @@
+# 本插件的组合补丁层：向 profile 的插件树插入一个 loader 行。
+# - 宿主半侧：lib/index.js（注册 /handover 命令，负责把交接文档写入临时目录）
+# - 浏览器半侧：lib/client.js（package.json 的 dsh.client 声明让 Web 客户端加载它，
+#   在上下文占用面板底部注入「压缩」「交接」两个按钮）
+- insert:
+    - id: context-actions
+      name: dsh-context-actions
