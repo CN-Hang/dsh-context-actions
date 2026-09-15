@@ -2,6 +2,16 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.1] - 2026-09-15
+
+### Fixed
+
+- 「压缩 / 交接」按钮不再注入「会话统计 / 本轮用量 / 本轮用时 / tok 统计」等其它浮窗，只在上下文圆环（ContextMeter）面板中出现。
+
+### Changed
+
+- 「压缩 / 交接」按钮改为透明底 + 细边框 + `backdrop-filter` 毛玻璃样式，与上下文面板的原生圆角/层级保持一致。
+
 ## [0.1.0] - 2026-09-15
 
 ### Added

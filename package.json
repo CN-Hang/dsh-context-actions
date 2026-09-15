@@ -1,6 +1,6 @@
 {
   "name": "dsh-context-actions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DeepSeek Harness（dsh）Web GUI 插件：在上下文占用面板新增「压缩」与「交接」按钮。Adds Compact / Handover buttons to the dsh context panel (unofficial plugin).",
   "keywords": [
     "dsh",
