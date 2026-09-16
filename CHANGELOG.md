@@ -2,6 +2,12 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.3] - 2026-09-15
+
+### Fixed
+
+- 交接新建的会话现在会带上原会话的 `workspaceId`，归入原来的 Workspace，不再掉进「未分组」。已存在的历史未分组会话不会自动迁移。
+
 ## [0.1.2] - 2026-09-15
 
 ### Added
