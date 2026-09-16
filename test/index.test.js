@@ -117,8 +117,8 @@ test('--where：返回交接目录与当前生成方式', async () => {
   assert.deepEqual(JSON.parse(override.text), { dir: HANDOVER_DIR, mode: 'llm' });
 });
 
-test('配置归一化：非法 mode / 数值回退默认', async () => {
-  const host = makeHost({ config: { handover: { mode: 'bogus', maxOutputTokens: -1, provider: '   ' } } });
+test('配置归一化：非法 mode 回退默认', async () => {
+  const host = makeHost({ config: { handover: { mode: 'bogus', provider: '   ' } } });
   const result = await host.invoke('--where');
   assert.deepEqual(JSON.parse(result.text), { dir: HANDOVER_DIR, mode: 'mechanical' });
 });
@@ -135,6 +135,8 @@ test('mechanical：--write 生成文档并提取文件 / 命令 / 工具结果',
   assert.ok(markdown.includes('压缩检查点：之前完成了 X'));
   assert.ok(markdown.includes('`C:/work` ×1'));
   assert.ok(markdown.includes('未调用模型'));
+  assert.ok(markdown.includes('请用户选择'));
+  assert.ok(!markdown.includes('直接继续推进工作'));
   assert.ok(markdown.includes('| 会话消息 / 用户轮次 / 工具调用 | 6 / 2 / 1 |'));
   assert.ok(!markdown.includes('这段注入指令不应出现在交接文档里'));
 });
@@ -170,4 +172,5 @@ test('llm：没有 llm 服务时回退脚本节选并写明原因', async () => 
   const markdown = fs.readFileSync(target, 'utf8');
   assert.ok(markdown.includes('模型总结失败'));
   assert.ok(markdown.includes('脚本节选（模型总结回退）'));
+  assert.ok(markdown.includes('请用户选择'));
 });
