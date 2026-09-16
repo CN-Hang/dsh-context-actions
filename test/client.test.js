@@ -140,7 +140,7 @@ test('脚本节选：只显示「交接文档生成方式」一项，并带机�
   assert.equal(specs[0].hintText, 'card.mechanicalHint');
 });
 
-test('模型总结：显示 5 个字段，并保留已保存但目录里没有的 provider', () => {
+test('模型总结：显示 4 个字段，并保留已保存但目录里没有的 provider', () => {
   const snapshot = {
     status: 'ready',
     writable: true,
@@ -150,7 +150,7 @@ test('模型总结：显示 5 个字段，并保留已保存但目录里没有�
   const Card = renderCard(snapshot);
   react.reset([true]);
   const specs = specKeys(Card(baseProps(snapshot)));
-  assert.deepEqual(specs.map((spec) => spec.key), ['mode', 'provider', 'model', 'prompt', 'maxOutputTokens']);
+  assert.deepEqual(specs.map((spec) => spec.key), ['mode', 'provider', 'model', 'prompt']);
   const provider = specs.find((spec) => spec.key === 'provider');
   assert.ok(provider.options.some((option) => option.value === ''));
   assert.ok(provider.options.some((option) => option.value === 'qiniu'));
@@ -242,4 +242,19 @@ test('client 源码：保留了圆环专用选择逻辑，且不再用任意 dt/
   assert.ok(source.includes('findContextPanel(document)'));
   assert.ok(source.includes('svg[viewBox="0 0 14 14"]'));
   assert.ok(!source.includes("dialog.querySelector('dl')"));
+});
+
+test('promptText：脚本交接先询问用户，不直接开工', () => {
+  const prompt = exports.__test.promptText('/tmp/handover.md', 'mechanical');
+  assert.ok(prompt.includes('/tmp/handover.md'));
+  assert.ok(prompt.includes('下一步计划'));
+  assert.ok(prompt.includes('手动输入'));
+  assert.ok(prompt.includes('先不要动手'));
+  assert.ok(!prompt.includes('直接继续推进'));
+});
+
+test('promptText：模型交接沿用「读文档 → 复述 → 计划 → 继续」', () => {
+  const prompt = exports.__test.promptText('/tmp/handover.md', 'llm');
+  assert.ok(prompt.includes('直接继续推进'));
+  assert.ok(!prompt.includes('手动输入'));
 });
