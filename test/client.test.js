@@ -258,3 +258,20 @@ test('promptText：模型交接沿用「读文档 → 复述 → 计划 → 继�
   assert.ok(prompt.includes('直接继续推进'));
   assert.ok(!prompt.includes('手动输入'));
 });
+
+test('workspaceIdOf：沿用原会话的 Workspace，未归属返回 undefined', () => {
+  const workspaces = {
+    list: {
+      getSnapshot: () => ({
+        items: [
+          { workspaceId: 'ws-1', sessionIds: ['s1', 's2'] },
+          { workspaceId: 'ws-2', sessionIds: ['s3'] },
+        ],
+      }),
+    },
+  };
+  assert.equal(exports.__test.workspaceIdOf(workspaces, 's2'), 'ws-1');
+  assert.equal(exports.__test.workspaceIdOf(workspaces, 's9'), undefined);
+  assert.equal(exports.__test.workspaceIdOf(undefined, 's1'), undefined);
+  assert.equal(exports.__test.workspaceIdOf({ list: { getSnapshot: () => ({ items: null }) } }, 's1'), undefined);
+});
