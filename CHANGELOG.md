@@ -2,6 +2,20 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.0] - 2026-09-28
+
+### Changed
+
+- 适配 dsh 0.2（0.2.0-rc.x）的设置服务重构：宿主侧不再调用已移除的 `settings.register(ns, schema)`，改为在 loader 行导出带 `.volatile()` 字段的 `Config`，运行时通过引用直接读取（设置页保存后无需重启），并用 `settings.configure({ auto: false })` 关闭自动生成的表单。
+- 浏览器侧配置页从已移除的 `settings.plugin.item` 卡片迁移到 0.2 的 `plugins.row.config` 行配置页（key = `dsh-context-actions#context-actions`），配合 `configForms` 服务读写。
+- 上下文面板探测适配 0.2 的 portal 浮层：在旧版 inline 定位之外，新增「锚定几何 + 面板结构」配对（面板贴齐 trigger、ContextMeter bar + ≥2 行 dt/dd），并保留对非上下文浮窗的排除。
+
+### Fixed
+
+- 补回重写时丢失的 `promptText` / `workspaceIdOf` / `PACKAGE_NAME` 定义（此前会导致交接按钮运行时抛 `ReferenceError`）。
+- 声明缺失的 `@deepseek-ai/schemastery` 运行时依赖。
+- 单元测试全部迁移到 0.2 契约（19 项全部通过）。
+
 ## [0.1.3] - 2026-09-15
 
 ### Fixed
