@@ -66,7 +66,7 @@ test('bundle 契约：id / name / apply', () => {
   assert.equal(typeof exports.apply, 'function');
 });
 
-/** 用假 ctx 触发 apply()，捕获 settings.plugin.item 的组件函数。 */
+/** 用假 ctx 触发 apply()，捕获 plugins.row.config 的页面组件（0.2 起的行配置页）。 */
 function renderCard(snapshot) {
   let registered;
   const fakeCtx = {
@@ -80,11 +80,10 @@ function renderCard(snapshot) {
       }
       if (services.includes('slots')) {
         callback({
-          settingsScope: {
-            bind: () => ({
+          configForms: {
+            get: () => ({
               getSnapshot: () => snapshot,
               subscribe: () => () => {},
-              set: async () => {},
               mutate: async () => {},
             }),
           },
@@ -96,12 +95,15 @@ function renderCard(snapshot) {
           },
           remote: { session: { modelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }) } },
         });
+        return;
       }
+      // 按钮注入（sessions 等服务）与设置页无关，测试里跳过。
     },
   };
   exports.apply(fakeCtx);
-  assert.ok(registered !== undefined, '应注册 settings.plugin.item');
-  assert.equal(registered.config.key, 'dsh-context-actions');
+  assert.ok(registered !== undefined, '应注册 plugins.row.config');
+  assert.equal(registered.config.name, 'plugins.row.config');
+  assert.equal(registered.config.key, 'dsh-context-actions#context-actions');
   const descriptor = registered.view({});
   assert.equal(typeof descriptor.type, 'function');
   return descriptor.type;
@@ -109,7 +111,7 @@ function renderCard(snapshot) {
 
 function baseProps(snapshot) {
   return {
-    useHandoverCard: () => snapshot,
+    useHandoverForm: () => snapshot,
     setHandoverField: async () => {},
     resetAllHandoverFields: async () => {},
     loadModelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }),
@@ -131,7 +133,7 @@ function specKeys(node, out = []) {
 }
 
 test('脚本节选：只显示「交接文档生成方式」一项，并带机械提示', () => {
-  const snapshot = { status: 'ready', writable: true, user: {}, value: { mode: 'mechanical' } };
+  const snapshot = { status: 'ready', writable: true, user: {}, value: { handover: { mode: 'mechanical' } } };
   const Card = renderCard(snapshot);
   react.reset([true]);
   const tree = Card(baseProps(snapshot));
@@ -144,8 +146,8 @@ test('模型总结：显示 4 个字段，并保留已保存但目录里没有�
   const snapshot = {
     status: 'ready',
     writable: true,
-    user: { provider: 'qiniu' },
-    value: { mode: 'llm', provider: 'qiniu', model: 'deepseek-flash', prompt: '提示词', maxOutputTokens: 2000 },
+    user: { handover: { provider: 'qiniu' } },
+    value: { handover: { mode: 'llm', provider: 'qiniu', model: 'deepseek-flash', prompt: '提示词' } },
   };
   const Card = renderCard(snapshot);
   react.reset([true]);
@@ -162,7 +164,7 @@ test('模型总结：未选 provider 时 model 下拉锁定', () => {
     status: 'ready',
     writable: true,
     user: {},
-    value: { mode: 'llm', provider: '', model: '', prompt: '提示词', maxOutputTokens: 2000 },
+    value: { handover: { mode: 'llm', provider: '', model: '', prompt: '提示词' } },
   };
   const Card = renderCard(snapshot);
   react.reset([true]);
@@ -237,11 +239,13 @@ test('findContextPanel：只认上下文圆环，不认会话统计浮窗', () =
   assert.equal(find(tpsDoc), null);
 });
 
-test('client 源码：保留了圆环专用选择逻辑，且不再用任意 dt/dd 兜底', () => {
+test('client 源码：保留了圆环专用选择逻辑，portal 面板还需 dt>=2 的结构证明', () => {
   const source = fs.readFileSync(clientFile, 'utf8');
   assert.ok(source.includes('findContextPanel(document)'));
   assert.ok(source.includes('svg[viewBox="0 0 14 14"]'));
-  assert.ok(!source.includes("dialog.querySelector('dl')"));
+  // 0.2 起 portal 面板用「锚定几何 + 结构」配对；dt/dd 只作为结构证明，不再是任意兜底。
+  assert.ok(source.includes('hasContextPanelShape'));
+  assert.ok(source.includes("querySelectorAll('dt').length < 2"));
 });
 
 test('promptText：脚本交接先询问用户，不直接开工', () => {

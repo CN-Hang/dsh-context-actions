@@ -58,5 +58,8 @@
     "test": "node --test",
     "check": "node --check lib/index.js && node --check lib/client.js",
     "pack:dry": "npm pack --dry-run"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.4"
   }
 }
