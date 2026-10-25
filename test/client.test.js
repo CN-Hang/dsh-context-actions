@@ -239,13 +239,80 @@ test('findContextPanel：只认上下文圆环，不认会话统计浮窗', () =
   assert.equal(find(tpsDoc), null);
 });
 
-test('client 源码：保留了圆环专用选择逻辑，portal 面板还需 dt>=2 的结构证明', () => {
+test('client 源码：保留圆环选择逻辑，图例不再是硬性条件', () => {
   const source = fs.readFileSync(clientFile, 'utf8');
   assert.ok(source.includes('findContextPanel(document)'));
   assert.ok(source.includes('svg[viewBox="0 0 14 14"]'));
-  // 0.2 起 portal 面板用「锚定几何 + 结构」配对；dt/dd 只作为结构证明，不再是任意兜底。
+  // 0.2 起 portal 面板用「锚定几何 + 结构 + 措辞」三重证据。
   assert.ok(source.includes('hasContextPanelShape'));
-  assert.ok(source.includes("querySelectorAll('dt').length < 2"));
+  assert.ok(source.includes('hasContextPanelLabel'));
+  assert.ok(source.includes('isAnchoredAbove'));
+  // v0.2.1：图例缺失时仍可凭 bar + 几何/措辞认出面板。
+  assert.ok(!source.includes("querySelectorAll('dt').length < 2"));
+});
+
+/* ------------------------------------------------------------------ *
+ * portal 面板探测（0.2+）：几何 + 结构 + 措辞三重证据
+ * ------------------------------------------------------------------ */
+
+/** 造一个带包围盒的 portal 面板节点，可控制结构特征。 */
+function makePortalPanel(rect, shape) {
+  const opts = shape === undefined ? {} : shape;
+  const panel = makeNode({ role: 'dialog', 'aria-label': opts.label }, []);
+  panel.getBoundingClientRect = () => rect;
+  panel.querySelector = (selector) => {
+    if (selector === '[class*="_bar"]') return opts.bar === false ? null : { bar: true };
+    if (selector === '[class*="_rows"]') return opts.rows === false ? null : { rows: true };
+    if (selector === 'dl') {
+      if (opts.legend === false) return null;
+      const dtCount = opts.dtCount === undefined ? 3 : opts.dtCount;
+      return { querySelectorAll: () => new Array(dtCount).fill({}) };
+    }
+    return null;
+  };
+  return panel;
+}
+
+/** trigger 在 (x=100..140, y=500..520)；面板贴着它上方 8px。 */
+const TRIGGER_RECT = { left: 100, top: 500, right: 140, bottom: 520, width: 40, height: 20 };
+const PANEL_RECT = { left: 60, top: 380, right: 260, bottom: 492, width: 200, height: 112 };
+
+function portalDoc(panel) {
+  const trigger = makeTrigger('上下文已用 45%', true);
+  trigger.getBoundingClientRect = () => TRIGGER_RECT;
+  return { querySelectorAll: (selector) => (selector.startsWith('button') ? [trigger] : [panel]) };
+}
+
+test('portal 面板：有 bar + 三行图例时命中', () => {
+  const panel = makePortalPanel(PANEL_RECT, { label: '上下文已用' });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), panel);
+});
+
+test('portal 面板：图例缺失（上游不再渲染 dl）仍靠 bar + 几何命中', () => {
+  const panel = makePortalPanel(PANEL_RECT, { label: '上下文已用', legend: false });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), panel);
+});
+
+test('portal 面板：CSS module 哈希变化（无 _bar/_rows）仍靠措辞命中', () => {
+  const panel = makePortalPanel(PANEL_RECT, { label: '上下文已用', bar: false, rows: false });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), panel);
+});
+
+test('portal 面板：几何侧翻（面板偏右但仍重叠）也能命中', () => {
+  const sideRect = { left: 130, top: 380, right: 330, bottom: 492, width: 200, height: 112 };
+  const panel = makePortalPanel(sideRect, { label: '上下文已用' });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), panel);
+});
+
+test('portal 面板：完全不重叠的浮窗不认', () => {
+  const farRect = { left: 900, top: 380, right: 1100, bottom: 492, width: 200, height: 112 };
+  const panel = makePortalPanel(farRect, { label: '会话统计' });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), null);
+});
+
+test('portal 面板：只有一个非上下文 dialog 时不会被兜底误认', () => {
+  const panel = makePortalPanel(PANEL_RECT, { label: '会话统计', bar: false, rows: false, legend: false });
+  assert.equal(exports.__test.findContextPanel(portalDoc(panel)), null);
 });
 
 test('promptText：脚本交接先询问用户，不直接开工', () => {

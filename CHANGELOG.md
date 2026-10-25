@@ -2,6 +2,18 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.1] - 2026-10-25
+
+### Fixed
+
+- 上下文面板探测不再把 `<dl>` 图例当作硬性条件：上游若在无 breakdown 时不渲染图例，按钮不会再整个消失。识别改为「几何 + 结构 + 措辞」三重独立证据，任意一条命中即可挂载。
+- 面板身份兜底只认 `aria-label` 自称「上下文 / context」的 dialog，避免把带 bar/rows 类名的其它浮窗误判成上下文面板。
+
+### Changed
+
+- 锚定几何容差放宽：不再要求面板严格贴在 trigger 上方 8px，纵向与横向留白按面板尺寸自适应，兼容侧翻与 margin 调整。
+- 补充 6 项 portal 面板探测单元测试（图例缺失、CSS 哈希变化、几何侧翻、非重叠浮窗、误认排除）。
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed
