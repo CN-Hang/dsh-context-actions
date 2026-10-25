@@ -22,6 +22,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
+      # lib/index.js imports @deepseek-ai/schemastery at module scope, so the
+      # host-side tests need real dependencies installed before running.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
       - name: Syntax check
         run: npm run check
       - name: Unit tests
