@@ -2,6 +2,19 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.2] - 2026-11-06
+
+### Fixed
+
+- 修复面板按钮在 dsh 0.2.2-rc.1 上完全不出现：`ensureStyles()` 被调用但从未定义，effect 一执行即抛 `ReferenceError`，MutationObserver 从未挂载。补回该函数（幂等注入样式，按节点 id 判重）。
+- 补回「纯函数工具」区段整段丢失的 7 个辅助函数：`messageOf` / `failureText` / `resultText` / `parseWhere` / `joinPath` / `shortId` / `stamp`（此前交接与压缩动作运行时抛 `ReferenceError`）。
+
+### Changed
+
+- 适配 dsh 0.2.2 的会话 API 变化：
+  - 「当前会话」改从 `sessions.list.getSnapshot().byId` 里取 `retainedBy.mainView > 0` 的行（旧版 `snapshot.current` 保留为兜底）；
+  - 切换会话从已移除的 `sessions.open()` 迁移到 `uiWorkspace.openSession()`，并把 `uiWorkspace` 加入必需服务。
+
 ## [0.2.1] - 2026-10-25
 
 ### Fixed
